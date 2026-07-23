@@ -20,7 +20,7 @@ export async function GET(_request: NextRequest) {
     `,
   ])
 
-  const rawMap = new Map(rawRows.map((r) => [r.id, r]))
+  const rawMap = new Map((rawRows as RawRow[]).map((r) => [r.id, r]))
 
   const rows = forms.map((f) => {
     const raw = rawMap.get(f.id)

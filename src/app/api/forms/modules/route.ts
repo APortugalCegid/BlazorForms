@@ -9,5 +9,5 @@ export async function GET(_request: NextRequest) {
   const rows = await prisma.$queryRaw<{ module: string }[]>`
     SELECT DISTINCT "module" FROM "Form" ORDER BY "module" ASC
   `
-  return NextResponse.json(rows.map((r) => r.module))
+  return NextResponse.json((rows as { module: string }[]).map((r) => r.module))
 }

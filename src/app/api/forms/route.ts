@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
           ? { OR: [{ className: { contains: search } }, { module: { contains: search } }] }
           : {}),
         ...(included !== null ? { included: included === "true" } : {}),
-        ...(activeOnly === "true" ? { status: { in: ["Em Estabilização", "Testes"] } } : {}),
+        ...(activeOnly === "true" ? { status: "Em Estabilização" } : {}),
       },
       include: {
         assignedUser: { select: { id: true, name: true } },
@@ -44,8 +44,9 @@ export async function GET(request: NextRequest) {
     `,
   ])
 
+  type ChecklistRow = { id: string; checklistData: string | null; isBlocked: number; blockedReason: string | null; dueDate: string | null }
   const rawMap: Record<string, { checklistData: string | null; isBlocked: boolean; blockedReason: string | null; dueDate: string | null }> = {}
-  for (const r of checklistRows) {
+  for (const r of checklistRows as ChecklistRow[]) {
     rawMap[r.id] = {
       checklistData: r.checklistData,
       isBlocked: Boolean(r.isBlocked),

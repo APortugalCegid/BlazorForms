@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/session"
 import { prisma } from "@/lib/db"
 
-const ACTIVE_STATUSES = ["Em Estabilização", "Testes"]
+const ACTIVE_STATUSES = ["Em Estabilização"]
 
 export async function GET(_request: NextRequest) {
   const session = await getSession()
@@ -27,7 +27,7 @@ export async function GET(_request: NextRequest) {
 
   const userMap = new Map(users.map((u) => [u.id, u.name]))
   const dueSoonMap: Record<string, number> = {}
-  for (const r of dueSoonRows) dueSoonMap[r.assignedUserId] = (dueSoonMap[r.assignedUserId] ?? 0) + 1
+  for (const r of dueSoonRows as { assignedUserId: string }[]) dueSoonMap[r.assignedUserId] = (dueSoonMap[r.assignedUserId] ?? 0) + 1
 
   const byUser: Record<string, { name: string; counts: Record<string, number>; total: number; dueSoon: number }> = {}
 

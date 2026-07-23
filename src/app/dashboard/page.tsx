@@ -48,7 +48,7 @@ export default async function DashboardPage() {
     }),
   ])
 
-  const extraMap = new Map(extraRows.map((r) => [r.id, r]))
+  const extraMap = new Map((extraRows as { id: string; isBlocked: number; dueDate: string | null }[]).map((r) => [r.id, r]))
   const forms = rawForms.map((f) => ({
     ...f,
     isBlocked: Boolean(extraMap.get(f.id)?.isBlocked),
