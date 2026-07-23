@@ -11,7 +11,7 @@ const links = [
   { href: "/admin",     label: "Admin",     icon: Settings },
 ]
 
-export function Nav({ userName }: { userName: string }) {
+export function Nav({ userName, env }: { userName: string; env: string }) {
   const pathname = usePathname()
 
   const handleLogout = async () => {
@@ -36,6 +36,14 @@ export function Nav({ userName }: { userName: string }) {
           </div>
         </div>
         <p className="text-xs mt-1" style={{ color: "#CCE9FF", opacity: 0.7 }}>ERP Forms Migration</p>
+        <span className={cn(
+          "inline-block mt-2 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide",
+          env === "development"
+            ? "bg-amber-400 text-amber-900"
+            : "bg-emerald-500/20 text-emerald-300"
+        )}>
+          {env === "development" ? "DEV" : "PROD"}
+        </span>
       </div>
 
       {/* Navigation */}

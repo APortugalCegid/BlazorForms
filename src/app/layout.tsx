@@ -17,7 +17,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="pt" suppressHydrationWarning>
       <body className={`${inter.className} bg-gray-50 min-h-screen`} suppressHydrationWarning>
-        {session && <Nav userName={session.name} />}
+        {session && <Nav userName={session.name} env={process.env.NODE_ENV ?? "production"} />}
         <main className={session ? "ml-56 min-h-screen" : "min-h-screen"}>
           {children}
         </main>
