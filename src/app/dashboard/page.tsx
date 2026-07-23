@@ -48,8 +48,9 @@ export default async function DashboardPage() {
     }),
   ])
 
+  type RawForm = { id: string; module: string; classification: string; status: string; estimatedDays: number | null; assignedUserId: string | null; included: boolean }
   const extraMap = new Map((extraRows as { id: string; isBlocked: number; dueDate: string | null }[]).map((r) => [r.id, r]))
-  const forms = rawForms.map((f) => ({
+  const forms = (rawForms as RawForm[]).map((f) => ({
     ...f,
     isBlocked: Boolean(extraMap.get(f.id)?.isBlocked),
     dueDate: extraMap.get(f.id)?.dueDate ?? null,
@@ -83,7 +84,7 @@ export default async function DashboardPage() {
     const statusCounts: Record<string, number> = Object.fromEntries(STATUSES.map((s) => [s, mf.filter((f) => f.status === s).length]))
     const d = statusCounts["Concluído"] || 0
     return { module: m, total: mf.length, done: d, statusCounts, pct: mf.length > 0 ? Math.round((d / mf.length) * 100) : 0 }
-  }).sort((a: { module: string; pct: number }, b: { module: string; pct: number }) => b.pct - a.pct || a.module.localeCompare(b.module))
+  }).sort((a, b) => b.pct - a.pct || a.module.localeCompare(b.module))
 
   // ── By classification ───────────────────────────────────────────────────────
   const classifications = ["Editor", "Manutenção", "Exploração", "Other"]
