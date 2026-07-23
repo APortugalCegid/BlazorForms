@@ -75,13 +75,13 @@ export async function PATCH(
   if (status !== undefined) coreUpdates.status = status
   if (assignedUserId !== undefined) coreUpdates.assignedUserId = assignedUserId || null
 
-  let form = null
+  let form: Record<string, unknown> | null = null
   if (Object.keys(coreUpdates).length > 0) {
     form = await prisma.form.update({
       where: { id },
       data: coreUpdates,
       include: { assignedUser: { select: { id: true, name: true } } },
-    })
+    }) as Record<string, unknown>
   }
 
   // New fields — use raw SQL to bypass stale Prisma client cache
@@ -111,7 +111,7 @@ export async function PATCH(
     form = await prisma.form.findUnique({
       where: { id },
       include: { assignedUser: { select: { id: true, name: true } } },
-    })
+    }) as Record<string, unknown> | null
   }
 
   if (!form) return NextResponse.json({ error: "Not found" }, { status: 404 })
