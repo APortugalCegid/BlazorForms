@@ -80,7 +80,7 @@ export default async function DashboardPage() {
   const modules = [...new Set(forms.map((f) => f.module))].sort()
   const byModule = modules.map((m) => {
     const mf = forms.filter((f) => f.module === m)
-    const statusCounts = Object.fromEntries(STATUSES.map((s) => [s, mf.filter((f) => f.status === s).length]))
+    const statusCounts: Record<string, number> = Object.fromEntries(STATUSES.map((s) => [s, mf.filter((f) => f.status === s).length]))
     const d = statusCounts["Concluído"] || 0
     return { module: m, total: mf.length, done: d, statusCounts, pct: mf.length > 0 ? Math.round((d / mf.length) * 100) : 0 }
   }).sort((a, b) => b.pct - a.pct || a.module.localeCompare(b.module))
