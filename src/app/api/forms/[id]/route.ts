@@ -50,7 +50,7 @@ export async function GET(
 
   if (!form) return NextResponse.json({ error: "Not found" }, { status: 404 })
   return NextResponse.json({
-    ...form,
+    ...(form as Record<string, unknown>),
     ...raw,
     checklistProgress: checklistProgress(raw.checklistData),
   })
@@ -124,7 +124,7 @@ export async function PATCH(
 
   const raw = await getRawFields(id)
   return NextResponse.json({
-    ...form,
+    ...(form as Record<string, unknown>),
     ...raw,
     checklistProgress: checklistProgress(raw.checklistData),
   })
