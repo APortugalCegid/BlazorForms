@@ -114,6 +114,8 @@ export async function PATCH(
     })
   }
 
+  if (!form) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
   if (status && status !== current.status) {
     await prisma.stateHistory.create({
       data: { formId: id, fromStatus: current.status, toStatus: status, userId: session.id },
