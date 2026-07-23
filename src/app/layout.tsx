@@ -6,6 +6,8 @@ import { getSession } from "@/lib/session"
 
 const inter = Inter({ subsets: ["latin"] })
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Estabilização Blazor",
   description: "Gestão de migração de Forms ERP",
