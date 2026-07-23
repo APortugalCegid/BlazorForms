@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db"
 import { checklistProgress } from "@/lib/constants"
 import * as XLSX from "xlsx"
 
+type RawRow = { id: string; isBlocked: number; blockedReason: string | null; dueDate: string | null; checklistData: string | null }
+
 export async function GET(_request: NextRequest) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -13,13 +15,7 @@ export async function GET(_request: NextRequest) {
       include: { assignedUser: { select: { name: true } } },
       orderBy: [{ module: "asc" }, { className: "asc" }],
     }),
-    prisma.$queryRaw<{
-      id: string
-      isBlocked: number
-      blockedReason: string | null
-      dueDate: string | null
-      checklistData: string | null
-    }[]>`
+    prisma.$queryRaw<RawRow[]>`
       SELECT "id", "isBlocked", "blockedReason", "dueDate", "checklistData" FROM "Form"
     `,
   ])
