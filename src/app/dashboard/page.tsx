@@ -3,7 +3,6 @@ import { getSession } from "@/lib/session"
 import { prisma } from "@/lib/db"
 import { STATUSES, STATUS_COLORS } from "@/lib/constants"
 import { cn } from "@/lib/utils"
-import { Download } from "lucide-react"
 import { VelocityCard } from "@/components/dashboard/velocity-card"
 
 export default async function DashboardPage() {
@@ -157,7 +156,7 @@ export default async function DashboardPage() {
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-opacity shrink-0"
           style={{ backgroundColor: "#2962FF" }}
         >
-          <Download size={14} />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Exportar Excel
         </a>
       </div>
