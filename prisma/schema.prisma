@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String         @id @default(cuid())
+  name         String         @unique
+  forms        Form[]         @relation("AssignedForms")
+  stateChanges StateHistory[]
+  notes        Note[]
+  createdAt    DateTime       @default(now())
+}
+
+model Form {
+  id             String         @id @default(cuid())
+  module         String
+  className      String
+  loc            Int
+  token          String?
+  copies         Int            @default(1)
+  classification String
+  estimatedDays  Float
+  status         String         @default("Backlog")
+  included       Boolean        @default(true)
+  assignedUserId String?
+  assignedUser   User?          @relation("AssignedForms", fields: [assignedUserId], references: [id])
+  stateHistory   StateHistory[]
+  notes          Note[]
+  checklistData  String?
+  isBlocked     Boolean  @default(false)
+  blockedReason String?
+  dueDate       String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([module])
+  @@index([status])
+  @@index([assignedUserId])
+}
+
+model StateHistory {
+  id         String   @id @default(cuid())
+  formId     String
+  form       Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  fromStatus String?
+  toStatus   String
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  formId    String
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+}
