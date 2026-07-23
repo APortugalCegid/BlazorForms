@@ -62,7 +62,7 @@ export async function GET(_request: NextRequest) {
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, "Progresso")
 
-  const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" }) as Buffer
+  const buffer = new Uint8Array(XLSX.write(wb, { type: "buffer", bookType: "xlsx" }) as Buffer)
   const date = new Date().toISOString().split("T")[0]
 
   return new NextResponse(buffer, {

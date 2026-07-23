@@ -29,7 +29,7 @@ export async function GET() {
   // Flush pending writes before reading
   await prisma.$executeRawUnsafe("PRAGMA wal_checkpoint(TRUNCATE)")
 
-  const buffer = fs.readFileSync(file)
+  const buffer = new Uint8Array(fs.readFileSync(file))
   const date = new Date().toISOString().slice(0, 10)
   const filename = `blazor-backup-${date}.db`
 
