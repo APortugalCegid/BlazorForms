@@ -1,4 +1,3 @@
-import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
 
 const COOKIE = "blazor_user"
@@ -24,6 +23,7 @@ export async function createSessionToken(user: SessionUser): Promise<string> {
 }
 
 export async function getSession(): Promise<SessionUser | null> {
+  const { cookies } = await import("next/headers")
   const store = await cookies()
   const token = store.get(COOKIE)?.value
   if (!token) return null
@@ -36,6 +36,7 @@ export async function getSession(): Promise<SessionUser | null> {
 }
 
 export async function setSession(user: SessionUser): Promise<void> {
+  const { cookies } = await import("next/headers")
   const token = await createSessionToken(user)
   const store = await cookies()
   store.set(COOKIE, token, {
@@ -47,6 +48,7 @@ export async function setSession(user: SessionUser): Promise<void> {
 }
 
 export async function clearSession(): Promise<void> {
+  const { cookies } = await import("next/headers")
   const store = await cookies()
   store.delete(COOKIE)
 }
