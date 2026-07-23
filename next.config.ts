@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["lucide-react", "@hello-pangea/dnd"],
-  serverExternalPackages: ["better-sqlite3", "@prisma/adapter-better-sqlite3"],
+  transpilePackages: ["@hello-pangea/dnd"],
+  serverExternalPackages: ["better-sqlite3", "@prisma/adapter-better-sqlite3", "lucide-react"],
 };
 
 export default nextConfig;
