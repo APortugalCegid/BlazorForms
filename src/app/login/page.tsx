@@ -119,7 +119,7 @@ export default function LoginPage() {
                 Azure DevOps PAT
               </label>
               <a
-                href="https://dev.azure.com/_usersSettings/tokens"
+                href="https://dev.azure.com/cegid/_usersSettings/tokens"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs hover:underline"
