@@ -11,6 +11,7 @@ interface FilterBarProps {
 }
 
 const CLASSIFICATIONS = ["Editor", "Manutenção", "Exploração", "Other"]
+const SPRINT_OPTIONS = Array.from({ length: 50 - 12 + 1 }, (_, i) => 12 + i)
 
 const selectCls = [
   "text-sm border border-slate-300 rounded-lg px-3 py-1.5 bg-white",
@@ -20,7 +21,7 @@ const selectCls = [
 
 export function FilterBar({ filters, users, modules, onChange }: FilterBarProps) {
   const update = (patch: Partial<BoardFilters>) => onChange({ ...filters, ...patch })
-  const hasFilters = filters.module || filters.classification || filters.assignedUserId || filters.search || !!filters.activeOnly || !!filters.isBlocked
+  const hasFilters = filters.module || filters.classification || filters.assignedUserId || filters.search || !!filters.activeOnly || !!filters.isBlocked || filters.sprint != null
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -59,6 +60,17 @@ export function FilterBar({ filters, users, modules, onChange }: FilterBarProps)
       >
         <option value="">Todas as classificações</option>
         {CLASSIFICATIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+      </select>
+
+      {/* Sprint */}
+      <select
+        value={filters.sprint ?? ""}
+        onChange={(e) => update({ sprint: e.target.value === "" ? undefined : Number(e.target.value) })}
+        style={{ color: "#0f172a" }}
+        className={selectCls}
+      >
+        <option value="">Todos os sprints</option>
+        {SPRINT_OPTIONS.map((n) => <option key={n} value={n}>Sprint {n}</option>)}
       </select>
 
       {/* Assignee */}

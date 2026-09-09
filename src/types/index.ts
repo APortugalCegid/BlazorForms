@@ -22,6 +22,10 @@ export interface FormRecord {
   isBlocked: boolean
   blockedReason: string | null
   dueDate: string | null
+  sprint: number | null
+  dataInicial: string | null
+  dataFinal: string | null
+  estimativa: number | null
   createdAt: string
   updatedAt: string
 }
@@ -55,4 +59,5 @@ export interface BoardFilters {
   included?: boolean
   activeOnly?: boolean
   isBlocked?: boolean
+  sprint?: number
 }

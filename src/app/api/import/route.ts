@@ -49,19 +49,25 @@ export async function POST(request: NextRequest) {
   const shouldDeleteUsers = formData.get("deleteUsers") === "true"
 
   // Delete in order: history → notes → forms (clears FK on assignedUserId) → users
-  await prisma.$transaction([
-    prisma.stateHistory.deleteMany(),
-    prisma.note.deleteMany(),
-    prisma.form.deleteMany(),
-  ])
-
   let deletedUsers = 0
-  if (shouldDeleteUsers) {
-    const result = await prisma.user.deleteMany()
-    deletedUsers = result.count
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.stateHistory.deleteMany()
+      await tx.note.deleteMany()
+      await tx.form.deleteMany()
+      if (shouldDeleteUsers) {
+        const result = await tx.user.deleteMany()
+        deletedUsers = result.count
+      }
+      await tx.form.createMany({ data })
+      // estimativa is a raw field (outside stale Prisma client) — suggest it from LOC via SQL
+      await tx.$executeRawUnsafe(`UPDATE "Form" SET "estimativa" = ROUND("loc" * 7.0 / 12000, 0) WHERE "estimativa" IS NULL`)
+    })
+  } catch (err) {
+    console.error("[import] DB error:", err)
+    const message = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: `Erro de base de dados: ${message}` }, { status: 500 })
   }
-
-  await prisma.form.createMany({ data })
 
   return NextResponse.json({ imported: data.length, deletedUsers })
 }

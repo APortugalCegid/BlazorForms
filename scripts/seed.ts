@@ -58,6 +58,7 @@ async function main() {
 
   console.log(`Inserting ${data.length} forms...`)
   await prisma.form.createMany({ data })
+  await prisma.$executeRawUnsafe(`UPDATE "Form" SET "estimativa" = ROUND("loc" * 7.0 / 12000, 0) WHERE "estimativa" IS NULL`)
 
   const counts = await prisma.form.groupBy({ by: ["module"], _count: true })
   counts.sort((a, b) => a.module.localeCompare(b.module))

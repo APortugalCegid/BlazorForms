@@ -34,6 +34,10 @@ model Form {
   isBlocked     Boolean  @default(false)
   blockedReason String?
   dueDate       String?
+  sprint        Int?
+  dataInicial   String?
+  dataFinal     String?
+  estimativa    Float?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 

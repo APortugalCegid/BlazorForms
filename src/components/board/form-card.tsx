@@ -71,6 +71,26 @@ export const FormCard = memo(function FormCard({ form, index, onClick, selection
             <p className="text-[10px] text-slate-400 mt-0.5">{form.loc.toLocaleString("pt-PT")} LOC</p>
           )}
 
+          {/* Sprint + Estimativa */}
+          {(form.sprint != null || form.estimativa != null) && (
+            <p className="text-[10px] text-slate-500 font-medium mt-1">
+              {[
+                form.sprint != null ? `Sprint ${form.sprint}` : null,
+                form.estimativa != null ? `${form.estimativa} SP` : null,
+              ].filter(Boolean).join(" · ")}
+            </p>
+          )}
+
+          {/* Data Inicial / Data Final — always shown, even when unset */}
+          <div className="flex items-center gap-1 mt-1 text-slate-400">
+            <Calendar size={9} />
+            <span className="text-[10px]">
+              {form.dataInicial ? new Date(form.dataInicial).toLocaleDateString("pt-PT") : "?"}
+              {" → "}
+              {form.dataFinal ? new Date(form.dataFinal).toLocaleDateString("pt-PT") : "?"}
+            </span>
+          </div>
+
           {/* Checklist progress — always visible */}
           <div className="mt-2 pt-2 border-t border-slate-100">
             <div className="flex items-center justify-between text-[10px] mb-1"

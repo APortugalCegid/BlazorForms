@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/session"
 import { prisma } from "@/lib/db"
 import { checklistProgress } from "@/lib/constants"
+import { addBusinessDays } from "@/lib/date-utils"
+import { requiresSprint } from "@/lib/validation"
 
 // Raw query helper — bypasses stale Prisma client cache for fields added after initial codegen
 async function getRawFields(id: string) {
@@ -10,8 +12,12 @@ async function getRawFields(id: string) {
     isBlocked: number
     blockedReason: string | null
     dueDate: string | null
+    sprint: number | null
+    dataInicial: string | null
+    dataFinal: string | null
+    estimativa: number | null
   }[]>`
-    SELECT "checklistData", "isBlocked", "blockedReason", "dueDate" FROM "Form" WHERE "id" = ${id}
+    SELECT "checklistData", "isBlocked", "blockedReason", "dueDate", "sprint", "dataInicial", "dataFinal", "estimativa" FROM "Form" WHERE "id" = ${id}
   `
   const row = rows[0]
   return {
@@ -19,6 +25,10 @@ async function getRawFields(id: string) {
     isBlocked: Boolean(row?.isBlocked),
     blockedReason: row?.blockedReason ?? null,
     dueDate: row?.dueDate ?? null,
+    sprint: row?.sprint ?? null,
+    dataInicial: row?.dataInicial ?? null,
+    dataFinal: row?.dataFinal ?? null,
+    estimativa: row?.estimativa ?? null,
   }
 }
 
@@ -65,10 +75,19 @@ export async function PATCH(
 
   const { id } = await params
   const body = await request.json()
-  const { status, assignedUserId, isBlocked, blockedReason, dueDate } = body
+  const { status, assignedUserId, isBlocked, blockedReason, dueDate, sprint, dataInicial, dataFinal, estimativa } = body
 
   const current = await prisma.form.findUnique({ where: { id }, select: { status: true } })
   if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  const currentRaw = await getRawFields(id)
+
+  // Sprint is required for a form to be/remain in "Em Estabilização"
+  const effectiveStatus = status !== undefined ? status : current.status
+  const effectiveSprint = sprint !== undefined ? sprint : currentRaw.sprint
+  if (requiresSprint(effectiveStatus) && effectiveSprint == null) {
+    return NextResponse.json({ error: "Define o Sprint antes de mover para Em Estabilização" }, { status: 400 })
+  }
 
   // Fields the stale Prisma client knows — safe to use typed update
   const coreUpdates: { status?: string; assignedUserId?: string | null } = {}
@@ -84,12 +103,25 @@ export async function PATCH(
     }) as Record<string, unknown>
   }
 
+  // Data Final recalculates automatically from Data Inicial + Estimativa, unless the
+  // client sent dataFinal explicitly (a direct manual edit — kept as-is, no recompute)
+  let effectiveDataFinal: string | null | undefined = dataFinal
+  if (dataFinal === undefined && (dataInicial !== undefined || estimativa !== undefined)) {
+    const inicial = dataInicial !== undefined ? dataInicial : currentRaw.dataInicial
+    const est = estimativa !== undefined ? estimativa : currentRaw.estimativa
+    effectiveDataFinal = inicial && est != null ? addBusinessDays(inicial, est) : undefined
+  }
+
   // New fields — use raw SQL to bypass stale Prisma client cache
   const rawParts: string[] = []
   const rawVals: unknown[] = []
   if (isBlocked !== undefined) { rawParts.push('"isBlocked" = ?'); rawVals.push(isBlocked ? 1 : 0) }
   if (blockedReason !== undefined) { rawParts.push('"blockedReason" = ?'); rawVals.push(blockedReason) }
   if (dueDate !== undefined) { rawParts.push('"dueDate" = ?'); rawVals.push(dueDate) }
+  if (sprint !== undefined) { rawParts.push('"sprint" = ?'); rawVals.push(sprint) }
+  if (dataInicial !== undefined) { rawParts.push('"dataInicial" = ?'); rawVals.push(dataInicial) }
+  if (estimativa !== undefined) { rawParts.push('"estimativa" = ?'); rawVals.push(estimativa) }
+  if (effectiveDataFinal !== undefined) { rawParts.push('"dataFinal" = ?'); rawVals.push(effectiveDataFinal) }
   if (rawParts.length > 0) {
     rawParts.push('"updatedAt" = ?')
     rawVals.push(new Date().toISOString(), id)

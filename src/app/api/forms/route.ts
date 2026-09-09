@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
   const included = searchParams.get("included")
   const activeOnly = searchParams.get("activeOnly")
   const blockedOnly = searchParams.get("blocked")
+  const sprint = searchParams.get("sprint")
 
   // Run both queries in parallel — raw SQL for checklistData (bypasses stale Prisma client)
   const [forms, checklistRows] = await Promise.all([
@@ -39,19 +40,23 @@ export async function GET(request: NextRequest) {
       orderBy: [{ module: "asc" }, { className: "asc" }],
     }),
     // No WHERE — bypasses stale Prisma client for new fields; avoids IN-clause parameter limits
-    prisma.$queryRaw<{ id: string; checklistData: string | null; isBlocked: number; blockedReason: string | null; dueDate: string | null }[]>`
-      SELECT "id", "checklistData", "isBlocked", "blockedReason", "dueDate" FROM "Form"
+    prisma.$queryRaw<{ id: string; checklistData: string | null; isBlocked: number; blockedReason: string | null; dueDate: string | null; sprint: number | null; dataInicial: string | null; dataFinal: string | null; estimativa: number | null }[]>`
+      SELECT "id", "checklistData", "isBlocked", "blockedReason", "dueDate", "sprint", "dataInicial", "dataFinal", "estimativa" FROM "Form"
     `,
   ])
 
-  type ChecklistRow = { id: string; checklistData: string | null; isBlocked: number; blockedReason: string | null; dueDate: string | null }
-  const rawMap: Record<string, { checklistData: string | null; isBlocked: boolean; blockedReason: string | null; dueDate: string | null }> = {}
+  type ChecklistRow = { id: string; checklistData: string | null; isBlocked: number; blockedReason: string | null; dueDate: string | null; sprint: number | null; dataInicial: string | null; dataFinal: string | null; estimativa: number | null }
+  const rawMap: Record<string, { checklistData: string | null; isBlocked: boolean; blockedReason: string | null; dueDate: string | null; sprint: number | null; dataInicial: string | null; dataFinal: string | null; estimativa: number | null }> = {}
   for (const r of checklistRows as ChecklistRow[]) {
     rawMap[r.id] = {
       checklistData: r.checklistData,
       isBlocked: Boolean(r.isBlocked),
       blockedReason: r.blockedReason,
       dueDate: r.dueDate,
+      sprint: r.sprint,
+      dataInicial: r.dataInicial,
+      dataFinal: r.dataFinal,
+      estimativa: r.estimativa,
     }
   }
 
@@ -60,9 +65,14 @@ export async function GET(request: NextRequest) {
     isBlocked: rawMap[f.id]?.isBlocked ?? false,
     blockedReason: rawMap[f.id]?.blockedReason ?? null,
     dueDate: rawMap[f.id]?.dueDate ?? null,
+    sprint: rawMap[f.id]?.sprint ?? null,
+    dataInicial: rawMap[f.id]?.dataInicial ?? null,
+    dataFinal: rawMap[f.id]?.dataFinal ?? null,
+    estimativa: rawMap[f.id]?.estimativa ?? null,
     checklistProgress: checklistProgress(rawMap[f.id]?.checklistData ?? null, f.classification),
   }))
 
-  const result = blockedOnly === "true" ? mapped.filter((f) => f.isBlocked) : mapped
+  let result = blockedOnly === "true" ? mapped.filter((f) => f.isBlocked) : mapped
+  if (sprint) result = result.filter((f) => f.sprint === Number(sprint))
   return NextResponse.json(result)
 }

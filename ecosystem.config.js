@@ -8,6 +8,7 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: "3000",
+        DATABASE_URL: "file:C:/Apps/blazor-tracker/data/prod.db",
       },
       interpreter: "node",
       autorestart: true,

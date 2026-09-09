@@ -6,6 +6,9 @@ import { STATUSES, CLASSIFICATION_STYLE, STATUS_COLORS, CHECKLIST_TEMPLATES, CHE
 import type { ChecklistNode } from "@/lib/constants"
 import { X, Send, ChevronRight, CheckSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { requiresSprint } from "@/lib/validation"
+
+const SPRINT_OPTIONS = Array.from({ length: 50 - 12 + 1 }, (_, i) => 12 + i)
 
 interface CardDetailProps {
   form: FormDetail
@@ -130,7 +133,17 @@ export function CardDetail({ form, users, currentUserId: _currentUserId, onClose
   const [localForm, setLocalForm] = useState(form)
   const [checklistData, setChecklistData] = useState<ChecklistData>(() => parseChecklist(form.checklistData))
 
-  const updateField = async (patch: { status?: string; assignedUserId?: string | null; isBlocked?: boolean; blockedReason?: string | null; dueDate?: string | null }) => {
+  const updateField = async (patch: {
+    status?: string
+    assignedUserId?: string | null
+    isBlocked?: boolean
+    blockedReason?: string | null
+    dueDate?: string | null
+    sprint?: number | null
+    dataInicial?: string | null
+    dataFinal?: string | null
+    estimativa?: number | null
+  }) => {
     const res = await fetch(`/api/forms/${form.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -241,6 +254,71 @@ export function CardDetail({ form, users, currentUserId: _currentUserId, onClose
             />
           </div>
 
+          {/* Sprint */}
+          <div>
+            <p className="text-xs font-medium text-slate-500 mb-2">Sprint</p>
+            <select
+              value={localForm.sprint ?? ""}
+              onChange={(e) => updateField({ sprint: e.target.value === "" ? null : Number(e.target.value) })}
+              style={{ color: "#0f172a" }}
+              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white
+                focus:outline-none focus:ring-2 focus:border-transparent"
+              onFocus={(e) => (e.target.style.boxShadow = "0 0 0 2px #2962FF")}
+              onBlur={(e) => (e.target.style.boxShadow = "")}
+            >
+              <option value="">— sem sprint —</option>
+              {SPRINT_OPTIONS.map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Data Inicial / Estimativa / Data Final */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs font-medium text-slate-500 mb-2">Data Inicial</p>
+              <input
+                type="date"
+                value={localForm.dataInicial ?? ""}
+                onChange={(e) => updateField({ dataInicial: e.target.value || null })}
+                style={{ color: "#0f172a" }}
+                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white
+                  focus:outline-none focus:ring-2 focus:border-transparent"
+                onFocus={(e) => (e.target.style.boxShadow = "0 0 0 2px #2962FF")}
+                onBlur={(e) => (e.target.style.boxShadow = "")}
+              />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-slate-500 mb-2">Data Final</p>
+              <input
+                type="date"
+                value={localForm.dataFinal ?? ""}
+                onChange={(e) => updateField({ dataFinal: e.target.value || null })}
+                style={{ color: "#0f172a" }}
+                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white
+                  focus:outline-none focus:ring-2 focus:border-transparent"
+                onFocus={(e) => (e.target.style.boxShadow = "0 0 0 2px #2962FF")}
+                onBlur={(e) => (e.target.style.boxShadow = "")}
+              />
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-medium text-slate-500 mb-2">Estimativa (story points)</p>
+            <input
+              type="number"
+              step="1"
+              min="0"
+              value={localForm.estimativa ?? ""}
+              onChange={(e) => updateField({ estimativa: e.target.value === "" ? null : Number(e.target.value) })}
+              style={{ color: "#0f172a" }}
+              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white
+                focus:outline-none focus:ring-2 focus:border-transparent"
+              onFocus={(e) => (e.target.style.boxShadow = "0 0 0 2px #2962FF")}
+              onBlur={(e) => (e.target.style.boxShadow = "")}
+            />
+          </div>
+
           {/* Status */}
           <div>
             <p className="text-xs font-medium text-slate-500 mb-2">Estado</p>
@@ -248,12 +326,16 @@ export function CardDetail({ form, users, currentUserId: _currentUserId, onClose
               {STATUSES.map((s) => {
                 const c = STATUS_COLORS[s]
                 const active = localForm.status === s
+                const blocked = requiresSprint(s) && localForm.sprint == null
                 return (
                   <button
                     key={s}
                     onClick={() => updateField({ status: s })}
+                    disabled={blocked}
+                    title={blocked ? "Define o Sprint antes de mover para Em Estabilização" : undefined}
                     className={cn(
                       "px-3 py-1 rounded-full text-xs font-medium border transition-all",
+                      blocked && "opacity-40 cursor-not-allowed",
                       active
                         ? cn(c.bg, c.text, c.border, "ring-2 ring-offset-1 ring-current")
                         : "bg-white text-slate-500 border-slate-200 hover:border-slate-400"

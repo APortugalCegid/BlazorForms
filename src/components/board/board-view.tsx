@@ -7,7 +7,10 @@ import { FilterBar } from "./filter-bar"
 import { CardDetail } from "@/components/card-detail/card-detail"
 import type { FormRecord, BoardFilters, UserRecord, FormDetail } from "@/types"
 import { STATUSES } from "@/lib/constants"
+import { requiresSprint } from "@/lib/validation"
 import { cn } from "@/lib/utils"
+
+const BULK_SPRINT_OPTIONS = Array.from({ length: 50 - 12 + 1 }, (_, i) => 12 + i)
 
 interface WorkloadEntry {
   id: string
@@ -30,7 +33,9 @@ export function BoardView({ currentUser }: BoardViewProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [bulkAssignee, setBulkAssignee] = useState("")
   const [bulkStatus, setBulkStatus] = useState("")
-  const [bulkDueDate, setBulkDueDate] = useState("")
+  const [bulkSprint, setBulkSprint] = useState("")
+  const [bulkDataInicial, setBulkDataInicial] = useState("")
+  const [bulkDataFinal, setBulkDataFinal] = useState("")
   const [bulkLoading, setBulkLoading] = useState(false)
   const [filters, setFilters] = useState<BoardFilters>(() => {
     if (typeof window === "undefined") return {}
@@ -42,6 +47,7 @@ export function BoardView({ currentUser }: BoardViewProps) {
     if (p.get("search")) f.search = p.get("search")!
     if (p.get("activeOnly") === "true") f.activeOnly = true
     if (p.get("blocked") === "true") f.isBlocked = true
+    if (p.get("sprint")) f.sprint = Number(p.get("sprint"))
     return f
   })
   const [selectedForm, setSelectedForm] = useState<FormDetail | null>(null)
@@ -59,6 +65,7 @@ export function BoardView({ currentUser }: BoardViewProps) {
     if (filters.search) p.set("search", filters.search)
     if (filters.activeOnly) p.set("activeOnly", "true")
     if (filters.isBlocked) p.set("blocked", "true")
+    if (filters.sprint != null) p.set("sprint", String(filters.sprint))
     const qs = p.toString()
     history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname)
   }, [filters])
@@ -72,6 +79,7 @@ export function BoardView({ currentUser }: BoardViewProps) {
     if (filters.search) params.set("search", filters.search)
     if (filters.activeOnly) params.set("activeOnly", "true")
     if (filters.isBlocked) params.set("blocked", "true")
+    if (filters.sprint != null) params.set("sprint", String(filters.sprint))
 
     const res = await fetch(`/api/forms?${params}`)
     if (res.ok) setForms(await res.json())
@@ -105,25 +113,45 @@ export function BoardView({ currentUser }: BoardViewProps) {
     const form = forms.find((f) => f.id === draggableId)
     if (!form || form.status === newStatus) return
 
+    if (requiresSprint(newStatus) && form.sprint == null) {
+      window.alert("Define o Sprint antes de mover o card para Em Estabilização.")
+      openCard(form)
+      return
+    }
+
     const shouldAssign = !form.assignedUserId
     const assignedUser: UserRecord = { id: currentUser.id, name: currentUser.name, email: null, image: null }
+    const setDataInicial = requiresSprint(newStatus) && !form.dataInicial
+    const dataInicial = new Date().toISOString().slice(0, 10)
 
     setForms((prev) =>
       prev.map((f) =>
         f.id === draggableId
-          ? { ...f, status: newStatus, ...(shouldAssign ? { assignedUserId: currentUser.id, assignedUser } : {}) }
+          ? {
+              ...f,
+              status: newStatus,
+              ...(shouldAssign ? { assignedUserId: currentUser.id, assignedUser } : {}),
+              ...(setDataInicial ? { dataInicial } : {}),
+            }
           : f
       )
     )
 
-    await fetch(`/api/forms/${draggableId}`, {
+    const res = await fetch(`/api/forms/${draggableId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         status: newStatus,
         ...(shouldAssign ? { assignedUserId: currentUser.id } : {}),
+        ...(setDataInicial ? { dataInicial } : {}),
       }),
     })
+    // Reconcile with the server's response — it includes server-computed fields
+    // (e.g. dataFinal recalculated from dataInicial + estimativa) the optimistic update can't guess
+    if (res.ok) {
+      const updated = await res.json()
+      setForms((prev) => prev.map((f) => (f.id === draggableId ? { ...f, ...updated } : f)))
+    }
     fetchWorkload()
   }
 
@@ -162,21 +190,31 @@ export function BoardView({ currentUser }: BoardViewProps) {
     setSelectedIds(new Set())
     setBulkAssignee("")
     setBulkStatus("")
-    setBulkDueDate("")
+    setBulkSprint("")
+    setBulkDataInicial("")
+    setBulkDataFinal("")
   }, [])
 
   const handleBulkApply = async () => {
-    if ((!bulkAssignee && !bulkStatus && !bulkDueDate) || selectedIds.size === 0) return
+    if ((!bulkAssignee && !bulkStatus && !bulkSprint && !bulkDataInicial && !bulkDataFinal) || selectedIds.size === 0) return
     setBulkLoading(true)
     const body: Record<string, unknown> = { ids: Array.from(selectedIds) }
     if (bulkAssignee) body.assignedUserId = bulkAssignee
     if (bulkStatus) body.status = bulkStatus
-    if (bulkDueDate) body.dueDate = bulkDueDate
-    await fetch("/api/forms/bulk", {
+    if (bulkSprint) body.sprint = Number(bulkSprint)
+    if (bulkDataInicial) body.dataInicial = bulkDataInicial
+    if (bulkDataFinal) body.dataFinal = bulkDataFinal
+    const res = await fetch("/api/forms/bulk", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     })
+    if (res.ok) {
+      const { blockedNoSprint } = await res.json()
+      if (blockedNoSprint > 0) {
+        window.alert(`${blockedNoSprint} card${blockedNoSprint !== 1 ? "s" : ""} não avança${blockedNoSprint !== 1 ? "ram" : ""} para Em Estabilização por falta de Sprint.`)
+      }
+    }
     await fetchForms()
     fetchWorkload()
     exitSelection()
@@ -186,7 +224,7 @@ export function BoardView({ currentUser }: BoardViewProps) {
   const isMyDay = filters.assignedUserId === currentUser.id && !!filters.activeOnly
   const myDueSoon = workload.find((u) => u.id === currentUser.id)?.dueSoon ?? 0
   const blockedCount = forms.filter((f) => f.isBlocked).length
-  const noFilter = !filters.module && !filters.search && !filters.classification && !filters.assignedUserId && !filters.activeOnly && !filters.isBlocked
+  const noFilter = !filters.module && !filters.search && !filters.classification && !filters.assignedUserId && !filters.activeOnly && !filters.isBlocked && filters.sprint == null
 
   const displayedStatuses = filters.activeOnly
     ? STATUSES.filter((s) => s !== "Backlog" && s !== "Concluído")
@@ -370,17 +408,36 @@ export function BoardView({ currentUser }: BoardViewProps) {
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
+          <select
+            value={bulkSprint}
+            onChange={(e) => setBulkSprint(e.target.value)}
+            style={{ color: "#0f172a" }}
+            className="text-sm border border-slate-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-[#2962FF]"
+          >
+            <option value="">Sprint...</option>
+            {BULK_SPRINT_OPTIONS.map((n) => (
+              <option key={n} value={n}>Sprint {n}</option>
+            ))}
+          </select>
           <input
             type="date"
-            value={bulkDueDate}
-            onChange={(e) => setBulkDueDate(e.target.value)}
-            title="Prazo"
-            style={{ color: bulkDueDate ? "#0f172a" : "#94a3b8" }}
+            value={bulkDataInicial}
+            onChange={(e) => setBulkDataInicial(e.target.value)}
+            title="Data Inicial"
+            style={{ color: bulkDataInicial ? "#0f172a" : "#94a3b8" }}
+            className="text-sm border border-slate-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-[#2962FF]"
+          />
+          <input
+            type="date"
+            value={bulkDataFinal}
+            onChange={(e) => setBulkDataFinal(e.target.value)}
+            title="Data Final"
+            style={{ color: bulkDataFinal ? "#0f172a" : "#94a3b8" }}
             className="text-sm border border-slate-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-[#2962FF]"
           />
           <button
             onClick={handleBulkApply}
-            disabled={(!bulkAssignee && !bulkStatus && !bulkDueDate) || bulkLoading}
+            disabled={(!bulkAssignee && !bulkStatus && !bulkSprint && !bulkDataInicial && !bulkDataFinal) || bulkLoading}
             className="text-xs px-4 py-1.5 rounded-lg font-medium text-white disabled:opacity-40 transition-opacity shrink-0"
             style={{ backgroundColor: "#2962FF" }}
           >
@@ -394,6 +451,7 @@ export function BoardView({ currentUser }: BoardViewProps) {
 
       {selectedForm && (
         <CardDetail
+          key={selectedForm.id}
           form={selectedForm}
           users={users}
           currentUserId={currentUser.id}
