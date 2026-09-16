@@ -20,6 +20,7 @@ export default async function DashboardPage() {
         classification: true,
         status: true,
         estimatedDays: true,
+        estimativa: true,
         assignedUserId: true,
         included: true,
       },
@@ -47,7 +48,8 @@ export default async function DashboardPage() {
     }),
   ])
 
-  type RawForm = { id: string; module: string; classification: string; status: string; estimatedDays: number | null; assignedUserId: string | null; included: boolean }
+  type RawForm = { id: string; module: string; classification: string; status: string; estimatedDays: number | null; estimativa: number | null; assignedUserId: string | null; included: boolean }
+  const sp = (fs: { estimativa: number | null }[]) => fs.reduce((s, f) => s + (f.estimativa ?? 0), 0)
   const extraMap = new Map((extraRows as { id: string; isBlocked: number; dueDate: string | null }[]).map((r) => [r.id, r]))
   const forms = (rawForms as RawForm[]).map((f) => ({
     ...f,
@@ -57,18 +59,28 @@ export default async function DashboardPage() {
 
   // ── Overall stats ───────────────────────────────────────────────────────────
   const total = forms.length
-  const done = forms.filter((f) => f.status === "Concluído").length
-  const blocked = forms.filter((f) => f.isBlocked).length
+  const doneForms = forms.filter((f) => f.status === "Concluído")
+  const done = doneForms.length
+  const emCursoForms = forms.filter((f) => f.status === "Em Estabilização")
+  const blockedForms = forms.filter((f) => f.isBlocked)
+  const blocked = blockedForms.length
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const in7 = new Date(today); in7.setDate(in7.getDate() + 7)
-  const dueSoon = forms.filter((f) => {
+  const dueSoonForms = forms.filter((f) => {
     if (!f.dueDate) return false
     const d = new Date(f.dueDate)
     return d <= in7
-  }).length
+  })
+  const dueSoon = dueSoonForms.length
+
+  const totalSP = sp(forms)
+  const doneSP = sp(doneForms)
+  const emCursoSP = sp(emCursoForms)
+  const blockedSP = sp(blockedForms)
+  const dueSoonSP = sp(dueSoonForms)
 
   // ── By status ───────────────────────────────────────────────────────────────
   const byStatus = STATUSES.map((s) => ({
@@ -211,18 +223,19 @@ export default async function DashboardPage() {
       {/* Top stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { label: "Total Forms", value: total, color: "#022341", sub: null },
-          { label: "Concluídos", value: done, color: "#10b981", sub: `${pct}%` },
-          { label: "Em Curso", value: forms.filter((f) => f.status === "Em Estabilização").length, color: "#2962FF", sub: null },
-          { label: "Bloqueados", value: blocked, color: blocked > 0 ? "#ef4444" : "#94a3b8", sub: null },
-          { label: "Prazo < 7 dias", value: dueSoon, color: dueSoon > 0 ? "#f59e0b" : "#94a3b8", sub: null },
-        ].map(({ label, value, color, sub }) => (
+          { label: "Total Forms", value: total, color: "#022341", sub: null, sp: totalSP },
+          { label: "Concluídos", value: done, color: "#10b981", sub: `${pct}%`, sp: doneSP },
+          { label: "Em Curso", value: emCursoForms.length, color: "#2962FF", sub: null, sp: emCursoSP },
+          { label: "Bloqueados", value: blocked, color: blocked > 0 ? "#ef4444" : "#94a3b8", sub: null, sp: blockedSP },
+          { label: "Prazo < 7 dias", value: dueSoon, color: dueSoon > 0 ? "#f59e0b" : "#94a3b8", sub: null, sp: dueSoonSP },
+        ].map(({ label, value, color, sub, sp: cardSP }) => (
           <div key={label} className="bg-white rounded-xl border border-slate-200 p-4">
             <p className="text-xs text-slate-400 uppercase tracking-wide">{label}</p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-bold" style={{ color }}>{value}</p>
               {sub && <span className="text-sm font-medium" style={{ color }}>{sub}</span>}
             </div>
+            <p className="text-xs text-slate-400 mt-1">{cardSP} SP</p>
           </div>
         ))}
       </div>

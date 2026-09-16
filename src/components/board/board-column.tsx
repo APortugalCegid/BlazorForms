@@ -10,13 +10,14 @@ import { cn } from "@/lib/utils"
 interface BoardColumnProps {
   status: string
   forms: FormRecord[]
+  totalPoints?: number
   onCardClick: (form: FormRecord) => void
   selectionMode?: boolean
   selectedIds?: Set<string>
   onToggleSelect?: (id: string) => void
 }
 
-export const BoardColumn = memo(function BoardColumn({ status, forms, onCardClick, selectionMode, selectedIds, onToggleSelect }: BoardColumnProps) {
+export const BoardColumn = memo(function BoardColumn({ status, forms, totalPoints, onCardClick, selectionMode, selectedIds, onToggleSelect }: BoardColumnProps) {
   const c = STATUS_COLORS[status] || STATUS_COLORS["Backlog"]
   return (
     <div className="flex flex-col w-72 flex-shrink-0">
@@ -27,12 +28,22 @@ export const BoardColumn = memo(function BoardColumn({ status, forms, onCardClic
             <span className={cn("w-2 h-2 rounded-full", c.dot)} />
             <h3 className={cn("text-sm font-semibold", c.text)}>{status}</h3>
           </div>
-          <span className={cn(
-            "text-xs font-bold px-2 py-0.5 rounded-full border",
-            c.bg, c.text, c.border
-          )}>
-            {forms.length}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className={cn(
+              "text-xs font-bold px-2 py-0.5 rounded-full border",
+              c.bg, c.text, c.border
+            )}>
+              {forms.length}
+            </span>
+            {!!totalPoints && (
+              <span className={cn(
+                "text-xs font-bold px-2 py-0.5 rounded-full border",
+                c.bg, c.text, c.border
+              )}>
+                {totalPoints} SP
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

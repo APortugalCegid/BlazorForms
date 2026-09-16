@@ -176,6 +176,18 @@ export function BoardView({ currentUser }: BoardViewProps) {
     [forms]
   )
 
+  const pointsByStatus = useMemo(
+    () =>
+      STATUSES.reduce(
+        (acc, status) => {
+          acc[status] = (formsByStatus[status] || []).reduce((sum, f) => sum + (f.estimativa ?? 0), 0)
+          return acc
+        },
+        {} as Record<string, number>
+      ),
+    [formsByStatus]
+  )
+
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev)
@@ -371,6 +383,7 @@ export function BoardView({ currentUser }: BoardViewProps) {
                 key={status}
                 status={status}
                 forms={formsByStatus[status] || []}
+                totalPoints={pointsByStatus[status] || 0}
                 onCardClick={openCard}
                 selectionMode={selectionMode}
                 selectedIds={selectedIds}
