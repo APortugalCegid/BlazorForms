@@ -41,124 +41,52 @@ export const CHECKLIST_TEMPLATE: ChecklistNode[] = [
   { key: "f4s",         label: "F4s" },
   { key: "drilldowns",  label: "DrillDowns" },
   { key: "tabindex",    label: "TabIndex" },
-  { key: "resize", label: "Resize ecrãs", children: [
-    { key: "resize_min",   label: "Minimiza" },
-    { key: "resize_rest",  label: "Restaura" },
-    { key: "resize_max",   label: "Maximiza" },
-    { key: "resize_livre", label: "Resize livre - memoriza layout" },
-  ]},
-  { key: "ajuda", label: "Ajuda", children: [
-    { key: "ajuda_botao", label: "Botão" },
-    { key: "ajuda_f1",    label: "F1" },
-  ]},
-  { key: "atalhos",    label: "Atalhos de Teclado" },
-  { key: "active_bar", label: "Opções Active Bar" },
-  { key: "status_bar", label: "Informação StatusBar" },
+  { key: "resize",      label: "Resize Ecrã" },
+  { key: "ajuda_botao", label: "Botão de Ajuda" },
+  { key: "atalhos",     label: "Atalhos de Teclado" },
+  { key: "active_bar",  label: "Opções Active Bar" },
+  { key: "status_bar",  label: "Informação Status Bar" },
   { key: "listas", label: "Listas", children: [
-    { key: "listas_sistema",  label: "Sistema" },
-    { key: "listas_defeito",  label: "Por defeito" },
-    { key: "listas_pref",     label: "Preferências" },
+    { key: "listas_sistema", label: "Sistema" },
+    { key: "listas_defeito", label: "Por Defeito" },
+    { key: "listas_pref",    label: "Preferências" },
   ]},
-  { key: "ctrl_data",   label: "Controlos de Data" },
-  { key: "impressoes", label: "Impressões", children: [
-    { key: "imp_categorias", label: "Categorias" },
-    { key: "imp_local",      label: "Localização" },
-  ]},
-  { key: "paineis_lat",  label: "Paineis Laterais" },
-  { key: "local_idioma", label: "Localização/Idioma" },
-  { key: "bd_ao_mz_cv", label: "BD AO/MZ/CV" },
-  { key: "prigrelhas", label: "Prigrelhas", children: [
-    { key: "prig_col",      label: "Configuração de colunas" },
+  { key: "impressoes",   label: "Impressões" },
+  { key: "local_idioma", label: "Localização / Idioma" },
+  { key: "prigrelhas", label: "Grelhas", children: [
+    { key: "prig_col",      label: "Configuração de Colunas" },
     { key: "prig_agrupa",   label: "Agrupamentos" },
     { key: "prig_ordem",    label: "Ordenação" },
-    { key: "prig_imp",      label: "Impressão" },
-    { key: "prig_opcoes",   label: "Opções funcionais" },
+    { key: "prig_opcoes",   label: "Opções Funcionais" },
     { key: "prig_tooltips", label: "ToolTips" },
     { key: "prig_vistas",   label: "Vistas" },
     { key: "prig_paineis",  label: "Painéis" },
     { key: "prig_filtros",  label: "Filtros Personalizados" },
-    { key: "prig_export",   label: "Opções de exportação" },
+    { key: "prig_export",   label: "Opções de Exportação" },
   ]},
-  { key: "ext", label: "Extensibilidade", children: [
-    { key: "ext_cdus",    label: "CDUs" },
-    { key: "ext_sdus",    label: "SDUs" },
-    { key: "ext_mapas",   label: "Mapas" },
-    { key: "ext_funcoes", label: "Funções" },
-    { key: "ext_eventos", label: "Eventos" },
-  ]},
-  { key: "manut", label: "Manutenções", children: [
-    { key: "manut_val_visual", label: "Validação visual" },
-    { key: "manut_crud", label: "Operações CRUD", children: [
-      { key: "manut_crud_ui",  label: "Validação UI" },
-      { key: "manut_crud_sql", label: "Validação SQL" },
-    ]},
-    { key: "manut_dup",      label: "Duplicação de registos" },
-    { key: "manut_log",      label: "Registo de Log" },
-    { key: "manut_perm",     label: "Permissões" },
-    { key: "manut_perm_din", label: "Permissões dinâmicas" },
-    { key: "manut_perm_hor", label: "Permissões horizontais" },
-    { key: "manut_bloq",     label: "Bloqueio de registos" },
-  ]},
-]
-
-// Exploração = Editor sem secção Manutenções (forms read-only não têm CRUD)
-const EXPLORAÇÃO_TEMPLATE: ChecklistNode[] = [
-  { key: "f4s",         label: "F4s" },
-  { key: "drilldowns",  label: "DrillDowns" },
-  { key: "tabindex",    label: "TabIndex" },
-  { key: "resize", label: "Resize ecrãs", children: [
-    { key: "resize_min",   label: "Minimiza" },
-    { key: "resize_rest",  label: "Restaura" },
-    { key: "resize_max",   label: "Maximiza" },
-    { key: "resize_livre", label: "Resize livre - memoriza layout" },
-  ]},
-  { key: "ajuda", label: "Ajuda", children: [
-    { key: "ajuda_botao", label: "Botão" },
-    { key: "ajuda_f1",    label: "F1" },
-  ]},
-  { key: "atalhos",    label: "Atalhos de Teclado" },
-  { key: "active_bar", label: "Opções Active Bar" },
-  { key: "status_bar", label: "Informação StatusBar" },
-  { key: "listas", label: "Listas", children: [
-    { key: "listas_sistema",  label: "Sistema" },
-    { key: "listas_defeito",  label: "Por defeito" },
-    { key: "listas_pref",     label: "Preferências" },
-  ]},
-  { key: "ctrl_data",   label: "Controlos de Data" },
-  { key: "impressoes", label: "Impressões", children: [
-    { key: "imp_categorias", label: "Categorias" },
-    { key: "imp_local",      label: "Localização" },
-  ]},
-  { key: "paineis_lat",  label: "Paineis Laterais" },
-  { key: "local_idioma", label: "Localização/Idioma" },
-  { key: "bd_ao_mz_cv", label: "BD AO/MZ/CV" },
-  { key: "prigrelhas", label: "Prigrelhas", children: [
-    { key: "prig_col",      label: "Configuração de colunas" },
-    { key: "prig_agrupa",   label: "Agrupamentos" },
-    { key: "prig_ordem",    label: "Ordenação" },
-    { key: "prig_imp",      label: "Impressão" },
-    { key: "prig_opcoes",   label: "Opções funcionais" },
-    { key: "prig_tooltips", label: "ToolTips" },
-    { key: "prig_vistas",   label: "Vistas" },
-    { key: "prig_paineis",  label: "Painéis" },
-    { key: "prig_filtros",  label: "Filtros Personalizados" },
-    { key: "prig_export",   label: "Opções de exportação" },
-  ]},
-  { key: "ext", label: "Extensibilidade", children: [
-    { key: "ext_cdus",    label: "CDUs" },
-    { key: "ext_sdus",    label: "SDUs" },
-    { key: "ext_mapas",   label: "Mapas" },
-    { key: "ext_funcoes", label: "Funções" },
-    { key: "ext_eventos", label: "Eventos" },
-  ]},
+  { key: "manut_crud",       label: "Operações Crud" },
+  { key: "manut_val_visual", label: "Validação Visual" },
+  { key: "manut_dup",        label: "Duplicação de Registos" },
+  { key: "manut_log",        label: "Registo de Log" },
+  { key: "manut_perm",       label: "Permissões" },
+  { key: "manut_perm_din",   label: "Permissões dinâmicas" },
+  { key: "manut_bloq",       label: "Bloqueio de Registos" },
 ]
 
 function _flatKeys(nodes: ChecklistNode[]): string[] {
   return nodes.flatMap((n) => [n.key, ...(_flatKeys(n.children ?? []))])
 }
 
-// Editor = Manutenção = Other = template completo (52 itens)
-// Exploração = sem secção Manutenções (41 itens)
+// Exploração = forms read-only, sem CRUD -> exclui os itens de manutenção que não se aplicam
+const EXCLUDED_FOR_EXPLORACAO = new Set([
+  "manut_crud", "manut_dup", "manut_log", "manut_perm_din", "manut_bloq",
+])
+
+const EXPLORAÇÃO_TEMPLATE: ChecklistNode[] =
+  CHECKLIST_TEMPLATE.filter((n) => !EXCLUDED_FOR_EXPLORACAO.has(n.key))
+
+// Editor = Manutenção = Other = template completo (31 itens)
+// Exploração = sem os itens de manutenção não aplicáveis (26 itens)
 export const CHECKLIST_TEMPLATES: Record<string, ChecklistNode[]> = {
   "Editor":     CHECKLIST_TEMPLATE,
   "Manutenção": CHECKLIST_TEMPLATE,
@@ -167,7 +95,7 @@ export const CHECKLIST_TEMPLATES: Record<string, ChecklistNode[]> = {
 }
 
 export const CHECKLIST_KEYS = _flatKeys(CHECKLIST_TEMPLATE)
-export const CHECKLIST_TOTAL = CHECKLIST_KEYS.length // 52 — Editor/Manutenção/Other
+export const CHECKLIST_TOTAL = CHECKLIST_KEYS.length // 31 — Editor/Manutenção/Other
 
 export function checklistTotalFor(classification: string): number {
   const tpl = CHECKLIST_TEMPLATES[classification] ?? CHECKLIST_TEMPLATE

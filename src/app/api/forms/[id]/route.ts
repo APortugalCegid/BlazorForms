@@ -62,7 +62,7 @@ export async function GET(
   return NextResponse.json({
     ...(form as Record<string, unknown>),
     ...raw,
-    checklistProgress: checklistProgress(raw.checklistData),
+    checklistProgress: checklistProgress(raw.checklistData, form?.classification as string | undefined),
   })
 }
 
@@ -77,7 +77,7 @@ export async function PATCH(
   const body = await request.json()
   const { status, assignedUserId, isBlocked, blockedReason, dueDate, sprint, dataInicial, dataFinal, estimativa } = body
 
-  const current = await prisma.form.findUnique({ where: { id }, select: { status: true } })
+  const current = await prisma.form.findUnique({ where: { id }, select: { status: true, classification: true } })
   if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   const currentRaw = await getRawFields(id)
@@ -158,6 +158,6 @@ export async function PATCH(
   return NextResponse.json({
     ...(form as Record<string, unknown>),
     ...raw,
-    checklistProgress: checklistProgress(raw.checklistData),
+    checklistProgress: checklistProgress(raw.checklistData, current.classification),
   })
 }
